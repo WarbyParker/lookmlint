@@ -1,9 +1,9 @@
+# pylint: disable=missing-docstring,invalid-name
 import json
-import os
 
 import click
-import yaml
 
+from . import lookml
 from . import lookmlint
 
 
@@ -113,7 +113,7 @@ def _format_output(check_name, results):
             lines.append(f'- {view}')
     if check_name == 'mismatched-view-names':
         for view_file, view_name in results.items():
-            lines.append(f'- {view_file}.view.lkml: {view_name}')
+            lines.append(f'- {view_file}: {view_name}')
     return lines
 
 
@@ -135,7 +135,7 @@ def cli():
 @click.option('--json', 'json_output', is_flag=True, help='Format output as json')
 def lint(repo_path, checks, json_output):
     checks = _parse_checks(checks)
-    lkml = lookmlint.lookml_from_repo_path(repo_path)
+    lkml = lookml.LookML(repo_path)
     lint_config = lookmlint.read_lint_config(repo_path)
     lint_results = {
         check_name: _run_check(check_name, lkml, lint_config) for check_name in checks

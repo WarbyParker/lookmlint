@@ -23,8 +23,8 @@ class Dimension:
         self.label = self.data.get('label')
         self.description = self.data.get('description')
         self.sql = self.data.get('sql')
-        self.is_primary_key = self.data.get('primary_key') is True
-        self.is_hidden = self.data.get('hidden') is True
+        self.is_primary_key = self.data.get('primary_key') == 'yes'
+        self.is_hidden = self.data.get('hidden') == 'yes'
 
     def display_label(self):
         return self.label if self.label else self.name.replace('_', ' ').title()
@@ -49,7 +49,7 @@ class DimensionGroup:
         self.description = self.data.get('description')
         self.sql = self.data.get('sql')
         self.timeframes = self.data.get('timeframes')
-        self.is_hidden = self.data.get('hidden') is True
+        self.is_hidden = self.data.get('hidden') == 'yes'
 
     def display_label(self):
         return self.label if self.label else self.name.replace('_', ' ').title()
@@ -72,7 +72,7 @@ class Measure:
         self.label = self.data.get('label')
         self.description = self.data.get('description')
         self.sql = self.data.get('sql')
-        self.is_hidden = self.data.get('hidden') is True
+        self.is_hidden = self.data.get('hidden') == 'yes'
 
     def display_label(self):
         return self.label if self.label else self.name.replace('_', ' ').title()
@@ -110,7 +110,7 @@ class View:
 
     def primary_key(self):
         try:
-            return next(d.name for d in self.dimensions)
+            return next(d.name for d in self.dimensions if d.is_primary_key)
         except StopIteration:
             return None
         finally:
@@ -118,7 +118,10 @@ class View:
 
     def sql_definition(self):
         priority = [self.sql_table_name, self.derived_table_sql]
-        return next(v for v in priority if v is not None)
+        for v in priority:
+            if v is not None:
+                return v
+        return None
 
 
 @attr.s
@@ -225,12 +228,10 @@ class LookML:
 
         self.models = []
         for model_file in self._model_file_names():
-            print(model_file)
             with open(os.path.join(self.lookml_repo_path, model_file)) as f:
                 self.models.append(Model(lkml.load(f), model_file))
         self.views = []
         for view_file in self._view_file_names():
-            print(view_file)
             with open(os.path.join(self.lookml_repo_path, view_file)) as f:
                 for view_data in lkml.load(f)['views']:
                     self.views.append(View(view_data, view_file))
