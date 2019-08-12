@@ -221,16 +221,10 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/python:3.6.1
+      - image: circleci/python:3.6.2-stretch
     working_directory: ~/repo
     steps:
       - checkout
-      - run:
-          name: Install lookml-parser
-          command: |
-            curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
-            sudo apt install nodejs
-            sudo npm install -g lookml-parser
       - run:
           name: Install lookmlint
           command: |
