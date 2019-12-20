@@ -211,7 +211,7 @@ class Model:
             includes = [includes]
         self.included_views = [i[: -len('.view')] for i in includes]
         self.name = self.filename[: -len('.model.lkml')]
-        self.explores = [Explore(e, model=self.name) for e in self.data['explores']]
+        self.explores = [Explore(e, model=self.name) for e in self.data.get('explores', [])]
 
     def explore_views(self):
         return [v for e in self.explores for v in e.views]
