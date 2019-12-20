@@ -6,7 +6,7 @@ with open('readme.md') as f:
 setup(
     name='lookmlint',
     description='Linter for LookML',
-    version='0.2.1',
+    version='0.2.2',
     author='Ryan Tuck',
     author_email='ryan.tuck@warbyparker.com',
     url='https://github.com/WarbyParker/lookmlint',
