@@ -7,6 +7,11 @@ view: orders {
     sql: ${TABLE}.id ;;
   }
 
+  dimension: placed {
+    type: time
+    sql: ${TABLE}.placed ;;
+  }
+
   measure: count {
     type: count
   }

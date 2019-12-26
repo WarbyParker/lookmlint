@@ -25,6 +25,16 @@ view: order_items {
     sql: ${TABLE}.unit_cost_usd ;;
   }
 
+  dimension_group: created {
+    type: time
+    timeframes: [
+      date,
+      month,
+      year
+    ]
+    sql: ${TABLE}.created ;;
+  }
+
   measure: count {
     type: count
   }

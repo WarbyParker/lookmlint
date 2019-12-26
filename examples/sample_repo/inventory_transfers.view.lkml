@@ -12,6 +12,18 @@ view: inventory_transfers {
     sql: ${TABLE}.source_location_id ;;
   }
 
+  dimension_group: created {
+    type: time
+    timeframes: [
+      date,
+      month,
+      month_name,
+      time,
+      year
+    ]
+    sql: ${TABLE}.created ;;
+  }
+
   dimension: destination_location_id {
     type: number
     sql: ${TABLE}.destination_location_id ;;
