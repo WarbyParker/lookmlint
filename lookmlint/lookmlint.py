@@ -76,6 +76,37 @@ def field_label_issues(view, acronyms=None, abbreviations=None):
     return results
 
 
+def date_issues(field, timeframes=None):
+    timeframes = set() if timeframes is None else set(timeframes)
+    field_timeframes = set()
+
+    if field.is_hidden:
+        return {}
+
+    if hasattr(field, 'timeframes') and field.timeframes is not None:
+        field_timeframes = set(field.timeframes)
+
+    missing_timeframes = list(timeframes.difference(field_timeframes))
+
+    if missing_timeframes:
+        return {'Missing Timeframe(s):': missing_timeframes}
+
+    return missing_timeframes
+
+
+def field_date_issues(view, timeframes=None):
+    timeframes = [] if timeframes is None else timeframes
+    results = {}
+    for f in view.fields:
+        if f.type not in ('date', 'date_time', 'time'):
+            continue
+        issues = date_issues(f, timeframes)
+        if not issues:
+            continue
+        results[f.display_label()] = issues
+    return results
+
+
 def derived_table_contains_semicolon(view):
     return view.derived_table_sql is not None and ';' in view.derived_table_sql
 
@@ -95,13 +126,28 @@ def read_lint_config(repo_path):
     config_filepath = os.path.join(full_path, '.lintconfig.yml')
     acronyms = []
     abbreviations = []
+    timeframes = []
     if os.path.isfile(config_filepath):
         with open(config_filepath) as f:
             config = yaml.load(f)
             acronyms = config.get('acronyms', acronyms)
             abbreviations = config.get('abbreviations', abbreviations)
-    lint_config = {'acronyms': acronyms, 'abbreviations': abbreviations}
+            timeframes = config.get('timeframes', timeframes)
+    lint_config = {'acronyms': acronyms, 'abbreviations': abbreviations, 'timeframes': timeframes}
     return lint_config
+
+
+def lint_dates(lkml, timeframes):
+    if not timeframes:
+        return {}
+
+    # check for date issues
+    issues_field_dates = {}
+    for v in lkml.views:
+        issues = field_date_issues(v, timeframes)
+        if issues != {}:
+            issues_field_dates[v.name] = issues
+    return issues_field_dates
 
 
 def lint_labels(lkml, acronyms, abbreviations):
