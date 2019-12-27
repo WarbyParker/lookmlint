@@ -138,7 +138,7 @@ def lint_missing_timeframes(lkml, timeframes):
     if not timeframes:
         return {}
 
-    # check for date issues
+    # check for missing timeframe issues
     issues_field_dates = {}
     for v in lkml.views:
         issues = field_missing_timeframes(v, timeframes)
