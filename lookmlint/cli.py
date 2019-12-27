@@ -10,6 +10,7 @@ from . import lookmlint
 CHECK_OPTIONS = [
     'all',
     'label-issues',
+    'missing-timeframes',
     'raw-sql-in-joins',
     'unused-includes',
     'unused-view-files',
@@ -37,6 +38,11 @@ def _run_check(check_name, lkml, lint_config):
             lkml=lkml,
             acronyms=lint_config['acronyms'],
             abbreviations=lint_config['abbreviations'],
+        )
+    if check_name == 'missing-timeframes':
+        return lookmlint.lint_missing_timeframes(
+            lkml=lkml,
+            timeframes=lint_config['timeframes'],
         )
     if check_name == 'raw-sql-in-joins':
         return lookmlint.lint_sql_references(lkml)
@@ -80,6 +86,13 @@ def _format_output(check_name, results):
                 lines.append(f'  View: {view}')
                 for field, issues in view_results.items():
                     lines.append(f'    - {field}: {issues}')
+    if check_name == 'missing-timeframes':
+        for view, view_results in results.items():
+            lines.append(f'View: {view}')
+            for field, issues in view_results.items():
+                lines.append(f'  Field: {field}')
+                for issue, timeframe in issues.items():
+                    lines.append(f'   - {issue} {timeframe}')
     if check_name == 'raw-sql-in-joins':
         for model, model_results in results.items():
             lines.append(f'Model: {model}')

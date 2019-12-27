@@ -42,6 +42,12 @@ acronyms:
   - sms
   - sku
   - sla
+timeframes:
+  - date
+  - month
+  - month_name
+  - time
+  - year
 ```
 
 ## installation
@@ -104,6 +110,11 @@ join: order_items {
 }
 ```
 
+### `missing-timeframes`
+
+Find all date/datetime/time dimensions or dimension groups that are missing any of the timeframes defined in `.lintconfig.yml`.
+
+
 ### `unused-includes`
 
 If your LookML model explicitly specifies views to include, `lookmlint` can catch views that are `include`d in your model but not referenced in any of the explorations in that model.
@@ -157,6 +168,16 @@ Fields:
   View: order_items
     - Qty: ['Qty']
     - Unit Cost Usd: ['USD']
+
+
+missing-timeframes
+-----------
+View: items
+  Field: Created
+   - Missing Timeframe(s): ['month_name', 'time']
+View: orders
+  Field: Placed
+   - Missing Timeframe(s): ['date', 'month', 'month_name', 'time', 'year']
 
 
 mismatched-view-names

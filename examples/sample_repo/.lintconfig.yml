@@ -3,3 +3,9 @@ acronyms:
 abbreviations:
   - num
   - qty
+timeframes:
+  - date
+  - month
+  - month_name
+  - time
+  - year
