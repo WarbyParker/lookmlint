@@ -110,7 +110,7 @@ join: order_items {
 }
 ```
 
-### `date-issues`
+### `missing-timeframes`
 
 Find all date/datetime/time dimensions or dimension groups that are missing any of the timeframes defined in `.lintconfig.yml`.
 
@@ -170,7 +170,7 @@ Fields:
     - Unit Cost Usd: ['USD']
 
 
-date-issues
+missing-timeframes
 -----------
 View: items
   Field: Created

@@ -10,7 +10,7 @@ from . import lookmlint
 CHECK_OPTIONS = [
     'all',
     'label-issues',
-    'date-issues',
+    'missing-timeframes',
     'raw-sql-in-joins',
     'unused-includes',
     'unused-view-files',
@@ -39,8 +39,8 @@ def _run_check(check_name, lkml, lint_config):
             acronyms=lint_config['acronyms'],
             abbreviations=lint_config['abbreviations'],
         )
-    if check_name == 'date-issues':
-        return lookmlint.lint_dates(
+    if check_name == 'missing-timeframes':
+        return lookmlint.lint_missing_timeframes(
             lkml=lkml,
             timeframes=lint_config['timeframes'],
         )
@@ -86,7 +86,7 @@ def _format_output(check_name, results):
                 lines.append(f'  View: {view}')
                 for field, issues in view_results.items():
                     lines.append(f'    - {field}: {issues}')
-    if check_name == 'date-issues':
+    if check_name == 'missing-timeframes':
         for view, view_results in results.items():
             lines.append(f'View: {view}')
             for field, issues in view_results.items():

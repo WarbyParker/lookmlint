@@ -76,7 +76,7 @@ def field_label_issues(view, acronyms=None, abbreviations=None):
     return results
 
 
-def date_issues(field, timeframes=None):
+def missing_timeframes(field, timeframes=None):
     timeframes = set() if timeframes is None else set(timeframes)
     field_timeframes = set()
 
@@ -88,19 +88,16 @@ def date_issues(field, timeframes=None):
 
     missing_timeframes = list(timeframes.difference(field_timeframes))
 
-    if missing_timeframes:
-        return {'Missing Timeframe(s):': missing_timeframes}
-
-    return missing_timeframes
+    return {'Missing Timeframe(s):': missing_timeframes} if missing_timeframes else {}
 
 
-def field_date_issues(view, timeframes=None):
+def field_missing_timeframes(view, timeframes=None):
     timeframes = [] if timeframes is None else timeframes
     results = {}
     for f in view.fields:
         if f.type not in ('date', 'date_time', 'time'):
             continue
-        issues = date_issues(f, timeframes)
+        issues = missing_timeframes(f, timeframes)
         if not issues:
             continue
         results[f.display_label()] = issues
@@ -137,14 +134,14 @@ def read_lint_config(repo_path):
     return lint_config
 
 
-def lint_dates(lkml, timeframes):
+def lint_missing_timeframes(lkml, timeframes):
     if not timeframes:
         return {}
 
     # check for date issues
     issues_field_dates = {}
     for v in lkml.views:
-        issues = field_date_issues(v, timeframes)
+        issues = field_missing_timeframes(v, timeframes)
         if issues != {}:
             issues_field_dates[v.name] = issues
     return issues_field_dates
