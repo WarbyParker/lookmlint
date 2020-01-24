@@ -13,12 +13,6 @@ From the CLI:
 $ lookmlint lint ~/my-lookml-repo
 ```
 
-Alternatively, specify which `checks` to run:
-
-```
-$ lookmlint lint ~/my-lookml-repo --checks label-issues,views-missing-primary-keys
-```
-
 For structured output, set the `--json` flag:
 
 ```
@@ -29,7 +23,7 @@ $ lookmlint lint ~/my-lookml-repo --json
 
 `lookmlint` looks for a file named `.lintconfig.yml` in your lookML project repo.
 
-Its contents can contain lists of abbreviations and/or acronyms you'd like to flag. More detail below.
+Its contents can contain lists of abbreviations and/or acronyms you'd like to flag, as well as any checks you'd like to run. More detail below.
 
 #### sample .lintconfig.yml
 
@@ -48,6 +42,14 @@ timeframes:
   - month_name
   - time
   - year
+checks:
+  - label-issues
+  - unused-includes
+  - unused-view-files
+  - mismatched-view-names
+  - semicolons-in-derived-table-sql
+  - missing-view-sql-definitions
+  - raw-sql-in-joins
 ```
 
 ## installation
