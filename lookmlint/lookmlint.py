@@ -150,7 +150,7 @@ def read_lint_config(repo_path):
     checks = []
     if os.path.isfile(config_filepath):
         with open(config_filepath) as f:
-            config = yaml.load(f)
+            config = yaml.full_load(f)
             acronyms = config.get('acronyms', acronyms)
             abbreviations = config.get('abbreviations', abbreviations)
             timeframes = config.get('timeframes', timeframes)
