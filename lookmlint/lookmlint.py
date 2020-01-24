@@ -134,7 +134,7 @@ def unused_includes(model):
 def _parse_checks(checks):
     for c in checks:
         if c not in CHECK_OPTIONS:
-            raise click.BadOptionUsage(f'{c} not in {CHECK_OPTIONS}')
+            raise Exception('Check: {} (specified in .lintconfig.yml) is not recognised'.format(c))
     if 'all' in checks:
         checks = list(set(CHECK_OPTIONS) - set(['all']))
     return sorted(checks)
