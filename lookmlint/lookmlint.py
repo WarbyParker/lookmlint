@@ -132,7 +132,6 @@ def unused_includes(model):
 
 
 def _parse_checks(checks):
-    checks = [c.strip() for c in checks.split(',')]
     for c in checks:
         if c not in CHECK_OPTIONS:
             raise click.BadOptionUsage(f'{c} not in {CHECK_OPTIONS}')
