@@ -156,13 +156,8 @@ def read_lint_config(repo_path):
             timeframes = config.get('timeframes', timeframes)
             checks = config.get('checks', checks)
 
-    # AB - read checks node from .yml
-    # - parse checks using pre-existing parse checks functions (moved from cli.py)
-    # - add checks list as entry in lint_config dictionary - will sorted list be preserved here?
-
     checks = _parse_checks(checks)
-    lint_config = {'acronyms': acronyms, 'abbreviations': abbreviations, 'timeframes': timeframes, 'checks': checks}
-    return lint_config
+    return {'acronyms': acronyms, 'abbreviations': abbreviations, 'timeframes': timeframes, 'checks': checks}
 
 
 def lint_missing_timeframes(lkml, timeframes):
@@ -308,15 +303,12 @@ def _run_check(check_name, lkml, lint_config):
 
 
 def run_lint_checks(repo_path, lkml):
-    # run the checks as specified in .lintconfig.yml
-    # AB - create function to read in repo_path and lkml and run through checks defined in .yml file
-    # - logic moved over from cli.py file, which will now call this function instead
-    # - function returns lint_results to cli.py
+    """run the checks as specified in .lintconfig.yml"""
 
     lint_config = read_lint_config(repo_path)
     checks = lint_config['checks']
 
-    lint_results = {
-        check_name: _run_check(check_name, lkml, lint_config) for check_name in checks
+    return {
+        check_name: _run_check(check_name, lkml, lint_config)
+        for check_name in checks
     }
-    return lint_results
