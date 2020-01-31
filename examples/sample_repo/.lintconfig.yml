@@ -9,3 +9,11 @@ timeframes:
   - month_name
   - time
   - year
+checks:
+  - label-issues
+  - unused-includes
+  - unused-view-files
+  - mismatched-view-names
+  - semicolons-in-derived-table-sql
+  - missing-view-sql-definitions
+  - raw-sql-in-joins

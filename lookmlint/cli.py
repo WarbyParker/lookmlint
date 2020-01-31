@@ -7,62 +7,6 @@ from . import lookml
 from . import lookmlint
 
 
-CHECK_OPTIONS = [
-    'all',
-    'label-issues',
-    'missing-timeframes',
-    'raw-sql-in-joins',
-    'unused-includes',
-    'unused-view-files',
-    'views-missing-primary-keys',
-    'duplicate-view-labels',
-    'missing-view-sql-definitions',
-    'semicolons-in-derived-table-sql',
-    'mismatched-view-names',
-]
-
-
-def _parse_checks(checks):
-    checks = [c.strip() for c in checks.split(',')]
-    for c in checks:
-        if c not in CHECK_OPTIONS:
-            raise click.BadOptionUsage(f'{c} not in {CHECK_OPTIONS}')
-    if 'all' in checks:
-        checks = list(set(CHECK_OPTIONS) - set(['all']))
-    return sorted(checks)
-
-
-def _run_check(check_name, lkml, lint_config):
-    if check_name == 'label-issues':
-        return lookmlint.lint_labels(
-            lkml=lkml,
-            acronyms=lint_config['acronyms'],
-            abbreviations=lint_config['abbreviations'],
-        )
-    if check_name == 'missing-timeframes':
-        return lookmlint.lint_missing_timeframes(
-            lkml=lkml,
-            timeframes=lint_config['timeframes'],
-        )
-    if check_name == 'raw-sql-in-joins':
-        return lookmlint.lint_sql_references(lkml)
-    if check_name == 'unused-includes':
-        return lookmlint.lint_unused_includes(lkml)
-    if check_name == 'unused-view-files':
-        return lookmlint.lint_unused_view_files(lkml)
-    if check_name == 'views-missing-primary-keys':
-        return lookmlint.lint_view_primary_keys(lkml)
-    if check_name == 'duplicate-view-labels':
-        return lookmlint.lint_duplicate_view_labels(lkml)
-    if check_name == 'missing-view-sql-definitions':
-        return lookmlint.lint_missing_view_sql_definitions(lkml)
-    if check_name == 'semicolons-in-derived-table-sql':
-        return lookmlint.lint_semicolons_in_derived_table_sql(lkml)
-    if check_name == 'mismatched-view-names':
-        return lookmlint.lint_mismatched_view_names(lkml)
-    raise Exception(f'Check: {check_name} not recognized')
-
-
 def _format_output(check_name, results):
     lines = []
     if check_name == 'label-issues':
@@ -137,22 +81,11 @@ def cli():
 
 @click.command('lint')
 @click.argument('repo-path')
-@click.option(
-    '--checks',
-    required=False,
-    type=click.STRING,
-    default='all',
-    show_default=True,
-    help='\n'.join(CHECK_OPTIONS),
-)
 @click.option('--json', 'json_output', is_flag=True, help='Format output as json')
-def lint(repo_path, checks, json_output):
-    checks = _parse_checks(checks)
+def lint(repo_path, json_output):
     lkml = lookml.LookML(repo_path)
-    lint_config = lookmlint.read_lint_config(repo_path)
-    lint_results = {
-        check_name: _run_check(check_name, lkml, lint_config) for check_name in checks
-    }
+    lint_results = lookmlint.run_lint_checks(repo_path, lkml)
+
     if json_output:
         click.echo(json.dumps(lint_results, indent=4))
     else:

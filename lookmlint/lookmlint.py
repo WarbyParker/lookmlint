@@ -4,6 +4,20 @@ import os
 
 import yaml
 
+CHECK_OPTIONS = [
+    'all',
+    'label-issues',
+    'missing-timeframes',
+    'raw-sql-in-joins',
+    'unused-includes',
+    'unused-view-files',
+    'views-missing-primary-keys',
+    'duplicate-view-labels',
+    'missing-view-sql-definitions',
+    'semicolons-in-derived-table-sql',
+    'mismatched-view-names',
+]
+
 
 def duplicated_view_labels(explore):
     c = Counter(v.display_label() for v in explore.views)
@@ -117,6 +131,15 @@ def unused_includes(model):
     return sorted(list(set(model.included_views) - set(explore_view_sources)))
 
 
+def _parse_checks(checks):
+    for c in checks:
+        if c not in CHECK_OPTIONS:
+            raise Exception('Check: {} (specified in .lintconfig.yml) is not recognised'.format(c))
+    if 'all' in checks:
+        checks = list(set(CHECK_OPTIONS) - set(['all']))
+    return sorted(checks)
+
+
 def read_lint_config(repo_path):
     # read .lintconfig.yml
     full_path = os.path.expanduser(repo_path)
@@ -124,14 +147,17 @@ def read_lint_config(repo_path):
     acronyms = []
     abbreviations = []
     timeframes = []
+    checks = []
     if os.path.isfile(config_filepath):
         with open(config_filepath) as f:
-            config = yaml.load(f)
+            config = yaml.full_load(f)
             acronyms = config.get('acronyms', acronyms)
             abbreviations = config.get('abbreviations', abbreviations)
             timeframes = config.get('timeframes', timeframes)
-    lint_config = {'acronyms': acronyms, 'abbreviations': abbreviations, 'timeframes': timeframes}
-    return lint_config
+            checks = config.get('checks', checks)
+
+    checks = _parse_checks(checks)
+    return {'acronyms': acronyms, 'abbreviations': abbreviations, 'timeframes': timeframes, 'checks': checks}
 
 
 def lint_missing_timeframes(lkml, timeframes):
@@ -232,8 +258,8 @@ def lint_missing_view_sql_definitions(lkml):
         v.name
         for v in lkml.views
         if not v.sql_definition()
-        and v.extends == []
-        and any(f.sql and '${TABLE}' in f.sql for f in v.fields)
+           and v.extends == []
+           and any(f.sql and '${TABLE}' in f.sql for f in v.fields)
     ]
 
 
@@ -243,3 +269,46 @@ def lint_semicolons_in_derived_table_sql(lkml):
 
 def lint_mismatched_view_names(lkml):
     return {v.filename: v.name for v in lkml.views if mismatched_view_name(v)}
+
+
+def _run_check(check_name, lkml, lint_config):
+    if check_name == 'label-issues':
+        return lint_labels(
+            lkml=lkml,
+            acronyms=lint_config['acronyms'],
+            abbreviations=lint_config['abbreviations'],
+        )
+    if check_name == 'missing-timeframes':
+        return lint_missing_timeframes(
+            lkml=lkml,
+            timeframes=lint_config['timeframes'],
+        )
+    if check_name == 'raw-sql-in-joins':
+        return lint_sql_references(lkml)
+    if check_name == 'unused-includes':
+        return lint_unused_includes(lkml)
+    if check_name == 'unused-view-files':
+        return lint_unused_view_files(lkml)
+    if check_name == 'views-missing-primary-keys':
+        return lint_view_primary_keys(lkml)
+    if check_name == 'duplicate-view-labels':
+        return lint_duplicate_view_labels(lkml)
+    if check_name == 'missing-view-sql-definitions':
+        return lint_missing_view_sql_definitions(lkml)
+    if check_name == 'semicolons-in-derived-table-sql':
+        return lint_semicolons_in_derived_table_sql(lkml)
+    if check_name == 'mismatched-view-names':
+        return lint_mismatched_view_names(lkml)
+    raise Exception(f'Check: {check_name} not recognized')
+
+
+def run_lint_checks(repo_path, lkml):
+    """run the checks as specified in .lintconfig.yml"""
+
+    lint_config = read_lint_config(repo_path)
+    checks = lint_config['checks']
+
+    return {
+        check_name: _run_check(check_name, lkml, lint_config)
+        for check_name in checks
+    }
