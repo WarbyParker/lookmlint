@@ -1,5 +1,5 @@
 # pylint: disable=invalid-name,missing-docstring,too-few-public-methods,too-many-instance-attributes
-import os
+from pathlib import Path
 
 import attr
 import lkml
@@ -226,13 +226,15 @@ class LookML:
 
     def __attrs_post_init__(self):
 
+        repo_path = Path(self.lookml_repo_path)
+
         self.models = []
         for model_file in self._model_file_names():
-            with open(os.path.join(self.lookml_repo_path, model_file)) as f:
+            with open(repo_path.joinpath(model_file)) as f:
                 self.models.append(Model(lkml.load(f), model_file))
         self.views = []
         for view_file in self._view_file_names():
-            with open(os.path.join(self.lookml_repo_path, view_file)) as f:
+            with open(repo_path.joinpath(view_file)) as f:
                 for view_data in lkml.load(f)['views']:
                     self.views.append(View(view_data, view_file))
 
@@ -245,15 +247,18 @@ class LookML:
                     )
                     ev.source_view = source_view
 
+    def _get_files_matching_pattern_recursively(self, pattern):
+
+        p = Path(self.lookml_repo_path)
+        return sorted([str(f.resolve()) for f in p.glob(pattern)])
+
     def _view_file_names(self):
-        return sorted(
-            [f for f in os.listdir(self.lookml_repo_path) if f.endswith('.view.lkml')]
-        )
+
+        return self._get_files_matching_pattern_recursively('**/*.view.lkml')
 
     def _model_file_names(self):
-        return sorted(
-            [f for f in os.listdir(self.lookml_repo_path) if f.endswith('.model.lkml')]
-        )
+
+        return self._get_files_matching_pattern_recursively('**/*.model.lkml')
 
     def all_explore_views(self):
         explore_views = []
