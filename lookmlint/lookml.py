@@ -1,4 +1,5 @@
 # pylint: disable=invalid-name,missing-docstring,too-few-public-methods,too-many-instance-attributes
+import os
 from pathlib import Path
 
 import attr
@@ -229,14 +230,14 @@ class LookML:
         repo_path = Path(self.lookml_repo_path)
 
         self.models = []
-        for model_file in self._model_file_names():
+        for model_file in self._model_file_paths():
             with open(repo_path.joinpath(model_file)) as f:
-                self.models.append(Model(lkml.load(f), model_file))
+                self.models.append(Model(lkml.load(f), os.path.basename(model_file)))
         self.views = []
-        for view_file in self._view_file_names():
+        for view_file in self._view_file_paths():
             with open(repo_path.joinpath(view_file)) as f:
                 for view_data in lkml.load(f)['views']:
-                    self.views.append(View(view_data, view_file))
+                    self.views.append(View(view_data, os.path.basename(view_file)))
 
         # match explore views with their source views
         for m in self.models:
@@ -252,11 +253,11 @@ class LookML:
         p = Path(self.lookml_repo_path)
         return sorted([str(f.resolve()) for f in p.glob(pattern)])
 
-    def _view_file_names(self):
+    def _view_file_paths(self):
 
         return self._get_files_matching_pattern_recursively('**/*.view.lkml')
 
-    def _model_file_names(self):
+    def _model_file_paths(self):
 
         return self._get_files_matching_pattern_recursively('**/*.model.lkml')
 
