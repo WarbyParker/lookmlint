@@ -38,3 +38,18 @@ explore: inventory_transfers {
     sql_on: ${destination_location.id} = ${inventory_transfers.destination_location_id} ;;
   }
 }
+
+test: something {
+  explore_source: orders {
+    column: id {
+      field: orders.id
+    }
+    filters: {
+      field: order_items.unit_cost_usd
+      value: "100"
+    }
+  }
+  assert: something {
+    expression: ${orders.id} == 123 ;;
+  }
+}
