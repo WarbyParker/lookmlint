@@ -15,7 +15,7 @@ setup(
     install_requires=[
         'attrs',
         'click',
-        'lkml==0.1.2',
+        'lkml==0.2.2',
         'pyyaml',
     ],
     packages=['lookmlint'],
