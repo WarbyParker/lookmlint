@@ -131,7 +131,7 @@ class ExploreView:
     data = attr.ib(repr=False)
     explore = attr.ib()
     name = attr.ib(init=False)
-    source_view = attr.ib(init=False, repr=False)
+    source_view = attr.ib(init=False, repr=False, default=None)
     from_view_name = attr.ib(init=False, repr=False)
     view_name = attr.ib(init=False)
     join_name = attr.ib(init=False)
@@ -152,11 +152,18 @@ class ExploreView:
         return next(v for v in priority if v is not None)
 
     def display_label(self):
-        priority = [
-            self.view_label,
-            self.source_view.label,
-            self.name.replace('_', ' ').title(),
-        ]
+        # TODO: make this more elegant
+        if self.source_view:
+            priority = [
+                self.view_label,
+                self.source_view.label,
+                self.name.replace('_', ' ').title(),
+            ]
+        else:
+            priority = [
+                self.view_label,
+                self.name.replace('_', ' ').title(),
+            ]
         return next(v for v in priority if v is not None)
 
     def contains_raw_sql_ref(self):
@@ -190,7 +197,9 @@ class Explore:
     def __attrs_post_init__(self):
         self.name = self.data.get('name')
         self.label = self.data.get('label')
-        joined_views = [ExploreView(j, explore=self.name) for j in self.data.get('joins', [])]
+        joined_views = [
+            ExploreView(j, explore=self.name) for j in self.data.get('joins', [])
+        ]
         self.views = [ExploreView(self.data, explore=self.name)] + joined_views
 
     def display_label(self):
@@ -212,7 +221,9 @@ class Model:
             includes = [includes]
         self.included_views = [i[: -len('.view')] for i in includes]
         self.name = self.filename[: -len('.model.lkml')]
-        self.explores = [Explore(e, model=self.name) for e in self.data.get('explores', [])]
+        self.explores = [
+            Explore(e, model=self.name) for e in self.data.get('explores', [])
+        ]
 
     def explore_views(self):
         return [v for e in self.explores for v in e.views]
@@ -243,10 +254,12 @@ class LookML:
         for m in self.models:
             for e in m.explores:
                 for ev in e.views:
-                    source_view = next(
-                        v for v in self.views if v.name == ev.source_view_name()
-                    )
-                    ev.source_view = source_view
+                    # try to find source view (may not exist in the case of
+                    # a project import manifest file)
+                    matches = [v for v in self.views if v.name == ev.source_view_name()]
+                    if matches != []:
+                        source_view = matches[0]
+                        ev.source_view = source_view
 
     def _get_files_matching_pattern_recursively(self, pattern):
 
@@ -269,7 +282,9 @@ class LookML:
 
     def unused_view_files(self):
         view_names = [v.name for v in self.views]
-        explore_view_names = [v.source_view.name for v in self.all_explore_views()]
+        explore_view_names = [
+            v.source_view.name for v in self.all_explore_views() if v.source_view
+        ]
         extended_views = [exv for v in self.views for exv in v.extends]
         return sorted(
             list(set(view_names) - set(explore_view_names) - set(extended_views))

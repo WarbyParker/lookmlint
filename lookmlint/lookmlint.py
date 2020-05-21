@@ -127,7 +127,7 @@ def unused_includes(model):
     # don't suggest any includes are unused
     if model.included_views == ['*']:
         return []
-    explore_view_sources = [v.source_view.name for v in model.explore_views()]
+    explore_view_sources = [v.source_view.name for v in model.explore_views() if v.source_view]
     return sorted(list(set(model.included_views) - set(explore_view_sources)))
 
 
