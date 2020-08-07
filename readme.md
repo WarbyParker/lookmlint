@@ -1,4 +1,8 @@
+### This repository is archived and no longer under active development
+---
 # lookmlint
+
+
 
 Lint your LookML.
 
